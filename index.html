@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Holeni Pharmacy - Stock Dashboard</title>
+<style>
+*{box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
+body{margin:0;background:#f1f5f9;color:#1e293b}
+header{background:#0f766e;color:white;padding:20px 30px;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:22px}
+header p{margin:2px 0 0;opacity:.8;font-size:13px}
+.container{padding:20px;max-width:1100px;margin:auto}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}
+.card{background:white;padding:18px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card h3{margin:0;font-size:13px;color:#64748b;text-transform:uppercase}
+.card p{font-size:28px;font-weight:800;margin:8px 0 0}
+.green{color:#0f766e}.red{color:#dc2626}.orange{color:#ea580c}.blue{color:#2563eb}
+.box{background:white;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px}
+input,select{padding:10px;border:1px solid #cbd5e1;border-radius:8px;width:100%;margin-bottom:10px}
+button{background:#0f766e;color:white;border:none;padding:11px 18px;border-radius:8px;cursor:pointer;font-weight:700}
+button:hover{background:#0d5c56}
+.flex{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #e2e8f0;font-size:14px}
+.badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.ok{background:#dcfce7;color:#166534}.low{background:#fef9c3;color:#854d0e}.exp{background:#fee2e2;color:#991b1b}
+.search{margin-bottom:15px}
+@media(max-width:700px){.cards{grid-template-columns:1fr 1fr}.flex{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div><h1>💊 Holeni Pharmacy - Stock Dashboard</h1><p>Technical Project Manager Project | Letshela Mahlakola</p></div><div>📍 Centurion, SA</div></header>
+<div class="container">
+<div class="cards">
+<div class="card"><h3>Total Medications</h3><p class="blue" id="total">0</p></div>
+<div class="card"><h3>Total Stock</h3><p class="green" id="totalStock">0</p></div>
+<div class="card"><h3>Low Stock Alerts</h3><p class="orange" id="lowCount">0</p></div>
+<div class="card"><h3>Expired / Near Expiry</h3><p class="red" id="expCount">0</p></div>
+</div>
+
+<div class="box">
+<h3>➕ Add New Medication</h3>
+<div class="flex">
+<input id="name" placeholder="Medication Name e.g. Panado">
+<input id="qty" type="number" placeholder="Quantity">
+<input id="price" type="number" placeholder="Price R">
+<input id="expiry" type="date">
+<button onclick="addMed()">Add Stock</button>
+</div>
+</div>
+
+<div class="box">
+<input class="search" id="search" placeholder="🔍 Search medication..." onkeyup="render()">
+<table><thead><tr><th>Medication</th><th>Qty</th><th>Price</th><th>Expiry</th><th>Status</th><th>Action</th></tr></thead><tbody id="list"></tbody></table>
+</div>
+<p style="text-align:center;color:#64748b;font-size:13px">Built by Letshela Mahlakola | Technical Project Manager & Software Engineer | JavaScript, HTML, CSS</p>
+</div>
+<script>
+let meds = [
+{name:"Panado 500mg",qty:120,price:45,expiry:"2027-06-15"},
+{name:"Amoxicillin 500mg",qty:8,price:85,expiry:"2026-12-01"},
+{name:"Vitamin C 1000mg",qty:45,price:120,expiry:"2025-11-20"},
+{name:"Ibuprofen 200mg",qty:200,price:35,expiry:"2027-03-10"},
+{name:"Allergex Tablets",qty:5,price:60,expiry:"2026-09-30"},
+];
+function getStatus(m){
+ let today=new Date(); let exp=new Date(m.expiry);
+ if(exp < today) return '<span class="badge exp">EXPIRED</span>';
+ if(m.qty <= 10) return '<span class="badge low">LOW STOCK</span>';
+ let diff=(exp-today)/(1000*60*60*24);
+ if(diff < 90) return '<span class="badge exp">EXPIRING SOON</span>';
+ return '<span class="badge ok">IN STOCK</span>';
+}
+function render(){
+ let q=document.getElementById('search').value.toLowerCase();
+ let html=""; let low=0, exp=0, totalStock=0;
+ meds.filter(m=>m.name.toLowerCase().includes(q)).forEach((m,i)=>{
+  if(m.qty<=10) low++;
+  if(new Date(m.expiry) < new Date()) exp++;
+  totalStock+=m.qty;
+  html+=`<tr><td><b>${m.name}</b></td><td>${m.qty}</td><td>R${m.price}</td><td>${m.expiry}</td><td>${getStatus(m)}</td><td><button onclick="removeMed(${i})" style="background:#dc2626;padding:6px 10px">Delete</button></td></tr>`;
+ });
+ document.getElementById('list').innerHTML=html;
+ document.getElementById('total').innerText=meds.length;
+ document.getElementById('totalStock').innerText=totalStock;
+ document.getElementById('lowCount').innerText=low;
+ document.getElementById('expCount').innerText=exp;
+}
+function addMed(){
+ let n=document.getElementById('name').value;
+ let q=parseInt(document.getElementById('qty').value);
+ let p=parseInt(document.getElementById('price').value);
+ let e=document.getElementById('expiry').value;
+ if(!n||!q||!e){alert("Please fill name, qty and expiry");return;}
+ meds.push({name:n,qty:q,price:p,expiry:e});
+ render();
+ document.getElementById('name').value="";document.getElementById('qty').value="";document.getElementById('price').value="";document.getElementById('expiry').value="";
+}
+function removeMed(i){meds.splice(i,1);render();}
+render();
+</script>
+</body>
+</html>
